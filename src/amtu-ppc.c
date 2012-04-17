@@ -179,15 +179,16 @@ int amtu_priv(int argc, char *argv[])
 	}
 	/* parent */
 	wpid = wait(&stat);
-	if (!(WIFEXITED(stat) && (WEXITSTATUS(stat) == 0))) {
-		fprintf(stderr, "Privilege Separation Test FAILED on MFSPR!\n");
-#ifdef HAVE_LIBLAUS
-		LAUS_LOG(("amtu failed privilege separation on MFSPR"))
-#else
-		AUDIT_LOG("amtu failed privilege separation on MFSPR", 0)
-#endif
-		return(-1);
-	}
+        /*
+         * ignore this test, see:
+         * Bug 797123 - ppc: Privilege Separation Test FAILED on MFSPR!
+         *
+         * Following commit introduced emulation of mfspr rD, DSCR:
+         * commit efcac6589a277c10060e4be44b9455cf43838dc1
+         * Author: Alexey Kardashevskiy <aik@au1.ibm.com>
+         * Date:   Wed Mar 2 15:18:48 2011 +0000
+         *     powerpc: Per process DSCR + some fixes (try#4)
+         */
 
 	/*------------------------*/
 	/* Forth Instruction Test */
