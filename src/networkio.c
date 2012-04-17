@@ -41,6 +41,9 @@
 #include <ifaddrs.h>
 #include <linux/if_ether.h>
 #include <linux/if_packet.h>
+#include <net/if_arp.h>
+#include <sys/stat.h>
+#include <limits.h>
 #include <ctype.h>
 #include <syslog.h>
 #include "amtu.h"
@@ -143,7 +146,51 @@ int send_packet(struct interface_info *iff)
 	close(ssock_fd);
 	return 0;
 }
-		
+
+int sysfs_present(const char *path)
+{
+	struct stat st;
+	return stat(path, &st);
+}
+
+int get_sysfs_value(const char *sysfs_path)
+{
+	FILE *f;
+	int value = -1;
+
+	f = fopen(sysfs_path, "r");
+	if (f) {
+		fscanf(f, "%d", &value);
+		fclose(f);
+	}
+
+	return value;
+}
+
+int get_interface_type(const char *if_name)
+{
+	char sysfs_if_type[PATH_MAX];
+	int type = -1;
+
+	if (snprintf(sysfs_if_type, PATH_MAX,
+		"/sys/class/net/%s/type", if_name) > 0) {
+		type = get_sysfs_value(sysfs_if_type);
+	}
+	return type;
+}
+
+int get_interface_carrier(const char *if_name)
+{
+	char sysfs_if_carrier[PATH_MAX];
+	int carrier = 0;
+
+	if (snprintf(sysfs_if_carrier, PATH_MAX,
+		"/sys/class/net/%s/carrier", if_name) > 0) {
+		carrier = get_sysfs_value(sysfs_if_carrier);
+	}
+	return carrier;
+}
+
 /****************************************************************/
 /*								*/
 /* FUNCTION: get_interfaces					*/
@@ -174,10 +221,31 @@ int get_interfaces()
 		struct interface_info *np;
 		int found = 0;
 
-		/* only testing ethernet and tokenring */
-		if ((strncmp(ifa->ifa_name, "eth", 3) != 0) &&
-		    (strncmp(ifa->ifa_name, "tr", 2) != 0))
-			continue;
+		if (sysfs_present("/sys/class/net") == 0) {
+			int if_type = -1;
+			int if_carrier = 0;
+
+			if_type = get_interface_type(ifa->ifa_name);
+			if_carrier = get_interface_carrier(ifa->ifa_name);
+
+			if (debug)
+				printf("if: %7s, type: %4d, carrier: %3d\n",
+					ifa->ifa_name, if_type, if_carrier);
+
+			/* only testing ethernet and tokenring */
+			if (if_type != ARPHRD_ETHER &&
+			    if_type != ARPHRD_IEEE802_TR)
+				continue;
+
+			/* only testing if carrier present */
+			if (if_carrier != 1)
+				continue;
+		} else {
+			/* with no sysfs, just fall back to old way */
+			if ((strncmp(ifa->ifa_name, "eth", 3) != 0) &&
+			    (strncmp(ifa->ifa_name, "tr", 2) != 0))
+				continue;
+		}
 
 		/* check family */
 		if (ifa->ifa_addr->sa_family != AF_INET && 
