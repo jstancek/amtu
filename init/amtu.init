@@ -1,0 +1,86 @@
+#!/bin/sh
+#
+# amtu:		Abstract Machine Tests
+#
+# chkconfig: - 96 99
+# description:  This service runs the abstract machine tests to check the \
+#		underlying security assumptions. It can be configured to
+#		halt the machine in the event of failure. The program does
+#		not stay resident, but rather runs once.
+#
+# processname: /usr/sbin/amtu
+# config: /etc/sysconfig/amtu
+#
+# Return values according to LSB for all commands but status:
+# 0 - success
+# 1 - generic or unspecified error
+# 2 - invalid or excess argument(s)
+# 3 - unimplemented feature (e.g. "reload")
+# 4 - insufficient privilege
+# 5 - program is not installed
+# 6 - program is not configured
+# 7 - program is not running
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+prog="amtu"
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Allow anyone to run status
+if [ "$1" = "status" ] ; then
+	exit 0
+fi
+
+# Check that we are root ... so non-root users stop here
+test $EUID = 0  ||  exit 4
+
+# Check config
+test -f /etc/sysconfig/amtu && . /etc/sysconfig/amtu
+
+RETVAL=0
+
+start() {
+	test -x /usr/sbin/amtu  || exit 5
+	# Now check that the syconfig is found and has important things
+	# configured
+	test -f /etc/sysconfig/amtu || exit 6
+	test x"$AMTU_HALT_ON_FAILURE" != "x" || exit 6
+	test x"$HALT_COMMAND" != "x" || exit 6
+	echo -n $"Starting $prog: "
+	daemon $prog "$EXTRAOPTIONS" >/dev/null 2>&1
+	RETVAL=$?
+	echo
+	if [ $RETVAL -ne 0 ] ; then
+		if [ "$AMTU_HALT_ON_FAILURE" = "yes" ] ; then
+			# Give audit daemon chance to write to disk
+			sleep 3
+			logger "Amtu failed and halt on failure requested"
+			$HALT_COMMAND
+		fi
+	fi
+	return $RETVAL
+}
+
+stop() {
+	/bin/true
+}
+
+# See how we were called.
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    restart)
+	stop
+	start
+	;;
+    *)
+	echo $"Usage: $0 {start|stop|restart}"
+	RETVAL=3
+	;;
+esac
+exit $RETVAL
