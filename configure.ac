@@ -10,6 +10,7 @@ AC_PROG_INSTALL
 AC_PROG_AWK
 
 case "$target" in
+aarch64-*) AC_DEFINE(HAVE_AARCH64,1,NULL);;
 i386-* | i486-* | i586-* | i686-*) AC_DEFINE(HAVE_I86,1,NULL);;
 powerpc-*) AC_DEFINE(HAVE_PPC,1,NULL);;
 powerpc64-*) AC_DEFINE(HAVE_PPC64,1,NULL);;
