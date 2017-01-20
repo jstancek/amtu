@@ -1,5 +1,5 @@
 AC_REVISION($Revision: 1.4 $)dnl
-AC_INIT(amtu,1.0.8)
+AC_INIT(amtu,1.1)
 AC_PREREQ(2.12)dnl
 AM_CONFIG_HEADER(config.h)
 
