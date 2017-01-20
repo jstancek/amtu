@@ -13,6 +13,7 @@ case "$target" in
 i386-* | i486-* | i586-* | i686-*) AC_DEFINE(HAVE_I86,1,NULL);;
 powerpc-*) AC_DEFINE(HAVE_PPC,1,NULL);;
 powerpc64-*) AC_DEFINE(HAVE_PPC64,1,NULL);;
+powerpc64le-*) AC_DEFINE(HAVE_PPC64,1,NULL);;
 x86_64-*) AC_DEFINE(HAVE_X86_64,1,NULL);;
 s390-* | s390x-*) AC_DEFINE(HAVE_S390,1,NULL);;
 ia64-*) AC_DEFINE(HAVE_IA64,1,NULL);;
