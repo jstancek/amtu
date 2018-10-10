@@ -7,7 +7,7 @@
 // Description:   Code for Abstract Machine Test Utility - Memory Test
 //
 // Notes:  This module performs the memory test for the Abstract
-//         Machine Test Utility (AMTU).  The return codes are 
+//         Machine Test Utility (AMTU).  The return codes are
 //         as follows:
 //         -1 = failure occurred
 //          0 = success
@@ -27,11 +27,11 @@
 // 08/12/03 K.Simon    Updated debug messages
 // 08/19/03 K.Simon    Version # on CPL + comment stanzas for functions,
 //		       aligned code with tabs, aligned to 80 chars per
-//		       line, reduced chunk size, specified random as 
+//		       line, reduced chunk size, specified random as
 //		       pseudo random, changed printfs to fprintfs
-// 08/25/03 K.Simon    Added NO_TAG to LAUS_LOG 
+// 08/25/03 K.Simon    Added NO_TAG to LAUS_LOG
 // 08/26/03 K.Simon    Added printf to display test name
-// 10/15/03 K.Weidner, Code cleaned up per AMTU evaluation, changed NO_TAG 
+// 10/15/03 K.Weidner, Code cleaned up per AMTU evaluation, changed NO_TAG
 //          K.Simon    to ADMIN_amtu
 // 10/17/03 K.Simon    Removed ADMIN_amtu
 // 10/21/03 K.Simon    Converted mem_amount_kb to bytes for malloc, added
@@ -71,7 +71,7 @@ long long get_meminfo(char *tag)
 	FILE *mem_info;
 	char line[500];
 	long long val = 0;
-	
+
 	// Determine how much physical memory is on the machine
 	// by parsing the /proc/meminfo file
 	mem_info = fopen("/proc/meminfo", "r");
@@ -134,8 +134,8 @@ int memory(int argc, char *argv[])
 		goto cleanup;
 	} else {
 		if (debug) {
-			fprintf(stderr, "Total amount of physical memory in kB:" 
-				" %lld\n", mem_total); 
+			fprintf(stderr, "Total amount of physical memory in kB:"
+				" %lld\n", mem_total);
 		}
 	}
 
@@ -143,13 +143,16 @@ int memory(int argc, char *argv[])
 	mem_amount_kb = mem_total / 10;
 	if (debug) {
 		fprintf(stderr, "Amount of memory in kB we can allocate:"
-						" %lld\n", mem_amount_kb); 
+						" %lld\n", mem_amount_kb);
 	}
 
-	mem_limit = 1 * 1024 * 1024;
-	if ((sizeof (int *) == 4) && (mem_amount_kb >= mem_limit)) {
-		// Do not allocate more than 1 GB on 32-bit machines
-		// to avoid integer or address-space overflow
+	mem_limit = 512 * 1024;
+	if (mem_amount_kb >= mem_limit) {
+		/*
+		 * limit memory to max 512 MB
+		 * 1. it limits amount of time for test runtime
+		 * 2. 'i' is int and could overflow if we have huge amount of memory
+		 */
 		mem_amount_kb = mem_limit;
 	}
 
@@ -163,7 +166,7 @@ int memory(int argc, char *argv[])
 		mem_amount_kb = mem_amount_kb / 2;
 		mem_addr = malloc(mem_amount_kb * 1024);
 		mem_maxidx = (mem_amount_kb * 1024) / sizeof(int *);
-		
+
 		if (!mem_addr) {    // Error occurred
 			fprintf(stderr, "Could not allocate memory\n");
 #ifdef HAVE_LIBLAUS
@@ -189,7 +192,7 @@ int memory(int argc, char *argv[])
 		fprintf(stderr, "Writing random values to memory...\n");
 	}
 
-	seed = (unsigned) time(NULL);	
+	seed = (unsigned) time(NULL);
 	srand(seed);
 
 	for (i=0; i < mem_maxidx; ++i) {
@@ -211,7 +214,7 @@ int memory(int argc, char *argv[])
 #endif
 			goto cleanup;
 		}
-	} 
+	}
 
 	fprintf(stderr, "Memory Test SUCCESS!\n");
 #ifdef HAVE_LIBLAUS
