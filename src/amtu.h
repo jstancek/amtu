@@ -26,7 +26,7 @@
 //----------------------------------------------------------------------
 #ifndef _AMTU_H_
 #define _AMTU_H_
-int debug;
+extern int debug;
 
 /* Function Prototypes */
 int memory(int, char **);

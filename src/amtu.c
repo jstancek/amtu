@@ -52,6 +52,8 @@
 #include <sys/wait.h>
 #include "amtu.h"
 
+int debug;
+
 void usage()
 {
 	printf("Usage: amtu [-dmsinph]\n");

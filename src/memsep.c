@@ -84,7 +84,7 @@ void sig_handler(int sig)
 	if (debug) {
 		fprintf(stderr, "caught the fault %d\n", sig);
 	}
-	exit(0);
+	_exit(0);
 }
 
 /************************************************************************/
@@ -145,7 +145,7 @@ void write_read_mem(int *ptr, int write_flag)
 			}
 			*ptr = rand();
 		}
-		exit(-1);
+		_exit(-1);
 	}
 	else if (pid == -1) {
 		// Error condition 
